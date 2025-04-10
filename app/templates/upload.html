@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="container">
+        <h1>Dosya Yükleme</h1>
+        <p>Lütfen yüklemek istediğiniz dosyayı seçin:</p>
+        <p class="file-restriction"><strong>Not:</strong> Sadece PDF ve DOCX dosyaları yüklenebilir.</p>
+        
+        <form action="{{ url_for('upload.upload_file') }}" method="POST" enctype="multipart/form-data" class="upload-form">
+            <div class="form-group">
+                <label for="file">Dosya Seç:</label>
+                <input type="file" id="file" name="file" accept=".pdf,.docx" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="description">Açıklama (İsteğe Bağlı):</label>
+                <textarea id="description" name="description" rows="3"></textarea>
+            </div>
+            
+            <button type="submit" class="btn-submit">Dosyayı Yükle</button>
+        </form>
+        
+        {% if message %}
+        <div class="message {% if success %}success{% else %}error{% endif %}">
+            {{ message }}
+        </div>
+        {% endif %}
+    </div>
+{% endblock %}
