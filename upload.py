@@ -83,9 +83,11 @@ def upload_file():
         else:
             message = f'Dosya başarıyla yüklendi: {filename}'
             
+        # Başarılı yükleme sonrası şablona dosya yolunu da gönder
         return render_template('upload.html', 
                            message=message, 
                            success=True,
+                           file_path=file_path,
                            title='Dosya Yükle')
     else:
         return render_template('upload.html',

@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<style>
+    .chat-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .chat-messages {
+        height: 400px;
+        overflow-y: auto;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 10px;
+        margin-bottom: 20px;
+        background-color: #f9f9f9;
+    }
+    
+    .message {
+        margin-bottom: 15px;
+        padding: 10px;
+        border-radius: 5px;
+    }
+    
+    .user-message {
+        background-color: #e3f2fd;
+        border-left: 4px solid #2196F3;
+        text-align: right;
+    }
+    
+    .bot-message {
+        background-color: #f1f1f1;
+        border-left: 4px solid #4CAF50;
+    }
+    
+    .input-container {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .input-container input {
+        flex: 1;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+    }
+    
+    .input-container button {
+        padding: 10px 20px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+    
+    .input-container button:hover {
+        background-color: #45a049;
+    }
+    
+    .loading {
+        text-align: center;
+        margin-top: 10px;
+        display: none;
+    }
+    
+    .loading-dots {
+        display: inline-block;
+    }
+    
+    .loading-dots::after {
+        content: '.';
+        animation: dots 1.5s steps(5, end) infinite;
+    }
+    
+    @keyframes dots {
+        0%, 20% {
+            content: '.';
+        }
+        40% {
+            content: '..';
+        }
+        60% {
+            content: '...';
+        }
+        80%, 100% {
+            content: '';
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="chat-container">
+    <h1>RAG Chat</h1>
+    <p>PDF içerikleriniz hakkında sorular sorun ve yanıtları alın.</p>
+    
+    <div class="chat-messages" id="chatMessages"></div>
+    
+    <div class="loading" id="loading">
+        <span>Yanıt üretiliyor<span class="loading-dots"></span></span>
+    </div>
+    
+    <div class="input-container">
+        <input type="text" id="userInput" placeholder="Sorunuzu buraya yazın..." autocomplete="off">
+        <button id="sendButton">Gönder</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const chatMessages = document.getElementById('chatMessages');
+        const userInput = document.getElementById('userInput');
+        const sendButton = document.getElementById('sendButton');
+        const loading = document.getElementById('loading');
+        
+        // Enter tuşu ile gönderme
+        userInput.addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        });
+        
+        // Gönderme butonu
+        sendButton.addEventListener('click', sendMessage);
+        
+        function sendMessage() {
+            const message = userInput.value.trim();
+            if (message === '') return;
+            
+            // Kullanıcı mesajını ekle
+            addMessage(message, 'user');
+            
+            // Input'u temizle
+            userInput.value = '';
+            
+            // Yükleniyor göstergesini göster
+            loading.style.display = 'block';
+            
+            // Mesajı sunucuya gönder
+            fetch('/query', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ query: message })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Yükleniyor göstergesini gizle
+                loading.style.display = 'none';
+                
+                // Bot yanıtını ekle
+                if (data.error) {
+                    addMessage('Hata: ' + data.error, 'bot');
+                } else {
+                    addMessage(data.answer, 'bot');
+                }
+                
+                // Otomatik kaydırma
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            })
+            .catch(error => {
+                // Yükleniyor göstergesini gizle
+                loading.style.display = 'none';
+                
+                // Hata mesajını ekle
+                addMessage('Bir hata oluştu: ' + error, 'bot');
+                console.error('Error:', error);
+            });
+        }
+        
+        function addMessage(text, sender) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message');
+            messageElement.classList.add(sender === 'user' ? 'user-message' : 'bot-message');
+            
+            const messageText = document.createElement('div');
+            messageText.textContent = text;
+            
+            messageElement.appendChild(messageText);
+            chatMessages.appendChild(messageElement);
+            
+            // Otomatik kaydırma
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+    });
+</script>
+{% endblock %}

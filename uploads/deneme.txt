@@ -1,0 +1,17 @@
+Linux çekirdeği, 1991 yılında Linus Torvalds tarafından başlatılmış monolitik bir işletim sistemi çekirdeğidir.
+Son otuz yılda, karmaşıklığı ve benimsenme oranı önemli ölçüde artmış, pek çok Linux dağıtımının
+ve gömülü sistemin yapı taşı haline gelmiştir. Mimarisi, küçük gömülü cihazlardan büyük
+ölçekli sunuculara ve ana bilgisayarlara kadar geniş bir donanım yelpazesinde esnek, yüksek performanslı
+ve taşınabilir olacak şekilde tasarlanmıştır.
+Linux’u anlamanın kritik noktalarından biri, proses management (proses yönetimi), memory management
+(bellek yönetimi), proses scheduling (proses zamanlama), interrupt (kesme) ve interrupt
+handling, proses address spaces ve Virtual File System (VFS) katmanı gibi çekirdeğin temel alt sistemlerini
+gözden geçirmektir. Bu alt sistemler birlikte çalışarak kullanıcı uygulamalarının verimli ve
+kararlı bir şekilde görev yürüttüğü istikrarlı bir ortam sağlamaktadır. Linux’un açık kaynak doğası
+nedeniyle, çekirdek dünya çapındaki geliştiriciler tarafından yeni donanımlara ve yazılım gereksinimlerine
+uyum sağlamak amacıyla sürekli iyileştirilmekte hata düzeltmeleri eklenmekte ve yenilikçi
+özellikler kazandırılmaktadır.
+Bu bölümde, söz konusu her bir bileşenin mimari motivasyonlarını, veri yapılarını, algoritmalarını ve
+çekirdeğin geri kalanıyla olan etkileşimini açıklanarak alt sistemlere derinlemesine bir bakış sunulmaktadır.
+Ayrıca güncel ve doğru bakış açıları sunabilmek için resmi belgelere atıflar yapılarak farklı
+çekirdek sürümlerinde nasıl evrildiklerine dair bilgiler verilmektedir.

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container">
+    <h1 class="mb-4">PDF Dosyası İndeksleme</h1>
+    
+    {% if success is defined %}
+        <div class="alert {% if success %}alert-success{% else %}alert-danger{% endif %} fade show">
+            {{ message }}
+        </div>
+        
+        {% if success %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    İndeksleme Sonuçları
+                </div>
+                <div class="card-body">
+                    <p><strong>Dosya Adı:</strong> {{ filename }}</p>
+                    <p><strong>İşlem Süresi:</strong> {{ processing_time }} saniye</p>
+                    <p><strong>Oluşturulan Doküman Sayısı:</strong> {{ document_count }}</p>
+                    <p>Dosya başarıyla indekslendi ve AI modelinin kullanımına hazır hale getirildi.</p>
+                </div>
+            </div>
+            
+            <div class="row mt-4">
+                <div class="col">
+                    <a href="{{ url_for('upload.upload') }}" class="btn btn-primary">Yeni PDF Yükle</a>
+                </div>
+                <div class="col text-end">
+                    <a href="{{ url_for('index') }}" class="btn btn-secondary">Anasayfaya Dön</a>
+                </div>
+            </div>
+        {% endif %}
+        
+    {% else %}
+        <div class="card mb-4">
+            <div class="card-header">
+                PDF Dosyasını İndeksle
+            </div>
+            <div class="card-body">
+                <p><strong>Dosya:</strong> {{ filename }}</p>
+                <p>PDF dosyanızı indekslemek üzeresiniz. Bu işlem, dosyayı işleyip ChromaDB'ye ekleyecek ve AI modelinin kullanımına hazır hale getirecektir.</p>
+                <p><strong>Not:</strong> İndeksleme işlemi dosya boyutuna göre biraz zaman alabilir. İşlem sırasında lütfen sayfayı kapatmayınız.</p>
+                
+                <form method="POST" action="{{ url_for('pdf_indexer.pdf_embedding') }}">
+                    <button type="submit" class="btn btn-primary">İndeksleme İşlemini Başlat</button>
+                    <a href="{{ url_for('upload.upload') }}" class="btn btn-secondary">İptal</a>
+                </form>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+{% endblock %}

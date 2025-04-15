@@ -25,5 +25,11 @@
             {{ message }}
         </div>
         {% endif %}
+        
+        {% if success and file_path %}
+        <div class="action-buttons mt-3">
+            <a href="{{ url_for('pdf_indexer.pdf_embedding', file_path=file_path) }}" class="btn-primary">PDF Dosyasını İndeksle</a>
+        </div>
+        {% endif %}
     </div>
 {% endblock %}

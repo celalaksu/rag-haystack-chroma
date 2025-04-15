@@ -1,16 +1,23 @@
 from flask import Flask, render_template
 import os
 from upload import upload_bp, ensure_upload_dir
+from pdf_indexer import pdf_indexer_bp
+from chat import chat_bp
 
 app = Flask(__name__, 
             static_folder='app/static',
             template_folder='app/templates')
 
-# Configure the upload folder
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB limit
+# Configure the upload folder - Dosya boyutu sınırını artır
+app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB limit
 
-# Register the upload blueprint
+# Session için secret key ekle
+app.secret_key = 'rag-haystack-chroma-secret-key'  
+
+# Register the blueprints
 app.register_blueprint(upload_bp)
+app.register_blueprint(pdf_indexer_bp)
+app.register_blueprint(chat_bp)
 
 # Ensure upload directory exists
 ensure_upload_dir()
