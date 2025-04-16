@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mt-4">Web Kaynağı Ekle</h1>
+    <p class="lead">Web sitesi adresini girin ve RAG sistemi için içeriğini indeksleyin.</p>
+    
+    {% if success is defined %}
+        {% if success %}
+            <div class="alert alert-success mt-3" role="alert">
+                {{ message }}
+            </div>
+        {% else %}
+            <div class="alert alert-danger mt-3" role="alert">
+                {{ message }}
+            </div>
+        {% endif %}
+    {% endif %}
+    
+    <div class="card mt-4">
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('web_adres.web_adres_ekle') }}">
+                <div class="mb-3">
+                    <label for="url" class="form-label">Web Sayfası Adresi</label>
+                    <input type="url" class="form-control" id="url" name="url" 
+                           placeholder="https://ornek.com/sayfa" required>
+                    <div class="form-text">Eklemek istediğiniz web sayfasının tam adresini giriniz.</div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Kaynağı Ekle</button>
+            </form>
+        </div>
+    </div>
+    
+    <div class="mt-4">
+        <p><strong>Not:</strong> Eklenen web sayfaları daha sonra sohbet bölümünde sorularınızı cevaplamak için kullanılacaktır.</p>
+        <p>Sadece yasal ve uygun içeriğe sahip web sayfalarını ekleyiniz. Telif hakkı korumalı içeriklerin indekslenmesinden kullanıcı sorumludur.</p>
+    </div>
+</div>
+{% endblock %}

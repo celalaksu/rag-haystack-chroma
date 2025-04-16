@@ -3,6 +3,8 @@ import os
 from upload import upload_bp, ensure_upload_dir
 from pdf_indexer import pdf_indexer_bp
 from chat import chat_bp
+from web_adres import web_adres_bp
+from url_analyzer_routes import url_analyzer_bp
 
 app = Flask(__name__, 
             static_folder='app/static',
@@ -18,6 +20,8 @@ app.secret_key = 'rag-haystack-chroma-secret-key'
 app.register_blueprint(upload_bp)
 app.register_blueprint(pdf_indexer_bp)
 app.register_blueprint(chat_bp)
+app.register_blueprint(web_adres_bp)
+app.register_blueprint(url_analyzer_bp)
 
 # Ensure upload directory exists
 ensure_upload_dir()

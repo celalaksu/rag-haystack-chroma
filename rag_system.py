@@ -139,7 +139,7 @@ def create_system_promt():
         Query: {{query}}
 
         If you have enough context to answer this question, just return your answer
-        If you don't have enough context to answer, say 'N0_ANSWER'.
+        If you don't have enough context to answer, say 'NO_ANSWER'.
     {% endif %}
     """
     prompt = [ChatMessage.from_user(prompt_template)]
@@ -149,7 +149,7 @@ def create_system_promt():
 def create_route():
     main_routes = [
         {
-            "condition": "{{'N0_ANSWER' in replies[0].text.replace('\n', '')}}",
+            "condition": "{{'NO_ANSWER' in replies[0].text.replace('\n', '')}}",
             "output" :"{{query}}",
             "output_name": "go_web",
             "output_type": str,
@@ -164,13 +164,13 @@ def create_route():
     
     return main_routes
 
-def create_prompt_pipeline(prompt, main_routes):
+def create_prompt_pipeline(document_store, prompt, main_routes):
     advanced_rag = Pipeline(max_runs_per_component=5)
     advanced_rag.add_component("embedder", SentenceTransformersTextEmbedder(model="sentence-transformers/all-mpnet-base-v2"))
     advanced_rag.add_component("retriever", ChromaEmbeddingRetriever(document_store=document_store, top_k=3))
     advanced_rag.add_component("prompt_builder", ChatPromptBuilder(template=prompt))
     # advanced_rag.add_component("llm", OllamaChatGenerator(model="gemma3:1b", url = "http://localhost:11434"))
-    advanced_rag.add_component("llm", GoogleAIGeminiChatGenerator(model="gemini-2.5-pro-exp-03-25"))
+    advanced_rag.add_component("llm", GoogleAIGeminiChatGenerator(model="gemini-2.0-flash"))
     advanced_rag.add_component("web_search", SerperDevWebSearch())
     advanced_rag.add_component("router", ConditionalRouter(main_routes))
     
@@ -184,10 +184,10 @@ def create_prompt_pipeline(prompt, main_routes):
     return advanced_rag
 
 
-def run_user_query(user_query):
+def run_user_query(document_store, user_query):
     system_prompt = create_system_promt()
     main_routes = create_route()
-    advanced_rag = create_prompt_pipeline(system_prompt, main_routes)
+    advanced_rag = create_prompt_pipeline(document_store, system_prompt, main_routes)
     result = advanced_rag.run({"embedder":{"text":user_query}, "prompt_builder":{"query":user_query}, "router":{"query":user_query}})
     return result
 
@@ -202,5 +202,5 @@ if __name__ == "__main__":
     
     # Kullanıcı sorgusunu çalıştır
     user_query = "Proses yönetimi nedir?"
-    result = run_user_query(user_query)
+    result = run_user_query(document_store, user_query)
     print(result["router"]["answer"])

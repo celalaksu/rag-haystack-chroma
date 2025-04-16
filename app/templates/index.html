@@ -2,16 +2,49 @@
 
 {% block content %}
     <div class="container">
-        <h1>Welcome to Flask Application</h1>
-        <p>This is a basic Flask application using Jinja templates.</p>
-        <div class="card">
-            <h2>Features</h2>
-            <ul>
-                <li>Jinja template inheritance</li>
-                <li>Static file organization</li>
-                <li>Basic routing</li>
-                <li>Clean project structure</li>
-            </ul>
+        <h1>RAG Sistemi</h1>
+        <p>Bu uygulama, dokümanlarınızı ve web içeriklerini indeksleyerek, onlar hakkında sorular sormanıza olanak tanır.</p>
+        
+        <div class="row mt-4">
+            <div class="col-md-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">PDF Yükle</h5>
+                        <p class="card-text">PDF dokümanları yükleyin ve indeksleyin.</p>
+                        <a href="{{ url_for('upload.upload') }}" class="btn btn-primary">PDF Yükle</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Web Kaynağı Ekle</h5>
+                        <p class="card-text">Web sitesi adreslerini ekleyin ve içeriklerini indeksleyin.</p>
+                        <a href="{{ url_for('web_adres.web_adres_ekle') }}" class="btn btn-primary">Web Kaynağı Ekle</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">URL Analizi</h5>
+                        <p class="card-text">Bir URL'nin içerdiği linkleri analiz edin ve taranan sayfaları görüntüleyin.</p>
+                        <a href="{{ url_for('url_analyzer.url_analyzer') }}" class="btn btn-primary">URL Analizi</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Sohbet</h5>
+                        <p class="card-text">İndekslenen içerikler hakkında sorular sorun.</p>
+                        <a href="{{ url_for('chat.chat') }}" class="btn btn-primary">Sohbet</a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 {% endblock %}
