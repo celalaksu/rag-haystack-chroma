@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mt-4">İndeksleme Durumu</h1>
+    
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">İndeksleme İşlemi</h5>
+                </div>
+                
+                <div class="card-body">
+                    <!-- Genel İndeksleme Durumu -->
+                    <div class="mb-4">
+                        <h3>Durum</h3>
+                        
+                        <div class="progress mb-3" style="height: 25px;">
+                            <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" 
+                                 role="progressbar" 
+                                 style="width: {{ (status.processed / status.total * 100) if status.total else 0 }}%;" 
+                                 aria-valuenow="{{ status.processed }}" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="{{ status.total }}">
+                                 {{ status.processed }} / {{ status.total }}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4 text-center">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h5 class="card-title">İşlenen</h5>
+                                        <p id="processed-count" class="h3">{{ status.processed }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 text-center">
+                                <div class="card bg-success text-white">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Başarılı</h5>
+                                        <p id="success-count" class="h3">{{ status.success }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 text-center">
+                                <div class="card bg-danger text-white">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Hatalı</h5>
+                                        <p id="error-count" class="h3">{{ status.errors }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- İşlem Detayları -->
+                    <div>
+                        <h3>İşlem Detayları</h3>
+                        <div id="message-container" class="border rounded p-3" style="background-color: #f8f9fa; min-height: 200px; max-height: 600px; overflow-y: auto;">
+                            {% for message in status.messages %}
+                                <div class="mb-2">{{ message }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- Uyarı ve Tamamlanma Durumu -->
+                    <div id="completion-section" class="mt-4 text-center {% if not status.completed %}d-none{% endif %}">
+                        <div class="alert alert-success">
+                            <h4>İndeksleme İşlemi Tamamlandı!</h4>
+                            <p>Toplam {{ status.success }} URL başarıyla indekslendi.</p>
+                            <a href="{{ url_for('index') }}" class="btn btn-primary mt-2">Ana Sayfaya Dön</a>
+                        </div>
+                    </div>
+                    
+                    <!-- İşlem devam ediyor uyarısı -->
+                    <div id="in-progress-warning" class="mt-4 alert alert-warning {% if status.completed %}d-none{% endif %}">
+                        <h4><i class="fas fa-exclamation-triangle"></i> İşlem Devam Ediyor</h4>
+                        <p>Lütfen indeksleme işlemi tamamlanana kadar bu sayfayı kapatmayın veya yenilemeyin.</p>
+                        <p>İşlem tamamlandığında otomatik olarak bilgilendirileceksiniz.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Sayfa kapatılmak istendiğinde uyarı ver (işlem devam ediyorsa)
+        window.addEventListener('beforeunload', function(e) {
+            // İşlem tamamlanmadıysa uyarı ver
+            if (!{{ 'true' if status.completed else 'false' }}) {
+                e.preventDefault();
+                e.returnValue = 'İndeksleme işlemi hala devam ediyor. Sayfayı kapatmak istediğinizden emin misiniz?';
+                return e.returnValue;
+            }
+        });
+        
+        // İşlem tamamlanmadıysa, durumu periyodik olarak kontrol et
+        if (!{{ 'true' if status.completed else 'false' }}) {
+            // 2 saniyede bir durumu kontrol et
+            const statusCheckInterval = setInterval(function() {
+                fetch('{{ url_for("url_analyzer.get_indexing_status", index_id=index_id) }}')
+                    .then(response => response.json())
+                    .then(data => {
+                        // İlerleme çubuğunu güncelle
+                        const progressPercent = (data.processed / data.total) * 100;
+                        document.getElementById('progress-bar').style.width = progressPercent + '%';
+                        document.getElementById('progress-bar').setAttribute('aria-valuenow', data.processed);
+                        document.getElementById('progress-bar').textContent = data.processed + ' / ' + data.total;
+                        
+                        // Sayaçları güncelle
+                        document.getElementById('processed-count').textContent = data.processed;
+                        document.getElementById('success-count').textContent = data.success;
+                        document.getElementById('error-count').textContent = data.errors;
+                        
+                        // Mesajları güncelle
+                        const messageContainer = document.getElementById('message-container');
+                        messageContainer.innerHTML = '';
+                        data.messages.forEach(message => {
+                            const messageDiv = document.createElement('div');
+                            messageDiv.className = 'mb-2';
+                            messageDiv.textContent = message;
+                            messageContainer.appendChild(messageDiv);
+                        });
+                        
+                        // Otomatik olarak en son mesaja kaydır
+                        messageContainer.scrollTop = messageContainer.scrollHeight;
+                        
+                        // İşlem tamamlandıysa
+                        if (data.completed) {
+                            clearInterval(statusCheckInterval);
+                            document.getElementById('completion-section').classList.remove('d-none');
+                            document.getElementById('in-progress-warning').classList.add('d-none');
+                            
+                            // Tamamlanma mesajını da güncelle - Bu satır eklendi
+                            document.querySelector('#completion-section p').textContent = `Toplam ${data.success} URL başarıyla indekslendi.`;
+                            
+                            // İlerleme çubuğunu tamamlandı durumuna getir
+                            document.getElementById('progress-bar').classList.remove('progress-bar-animated');
+                            
+                            // İşlem tamamlandı, sayfayı kapatma uyarısını kaldır
+                            window.removeEventListener('beforeunload', beforeUnloadHandler);
+                        }
+                    })
+                    .catch(error => console.error('Durum bilgisi alınamadı:', error));
+            }, 2000);
+            
+            // beforeunload olayını kaldırmak için referans
+            const beforeUnloadHandler = function(e) {
+                if (!{{ 'true' if status.completed else 'false' }}) {
+                    e.preventDefault();
+                    e.returnValue = 'İndeksleme işlemi hala devam ediyor. Sayfayı kapatmak istediğinizden emin misiniz?';
+                    return e.returnValue;
+                }
+            };
+        }
+    });
+</script>
+{% endblock %}

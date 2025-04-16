@@ -73,12 +73,35 @@ def web_adres_ekle():
             flash('Bu URL zaten sisteme eklenmiş.', 'error')
             return render_template('web_adres_ekle.html', success=False, message='Bu URL zaten sisteme eklenmiş.', title='Web Kaynağı Ekle')
         
-        try:
-            # Document store oluştur
-            document_store = create_document_store()
-            
-            # Web indeksleme pipeline'ını oluştur
-            indexing_pipeline = create_web_indexing_pipeline(document_store)
+        # URL'yi URL analiz sayfasına yönlendir
+        return redirect(url_for('url_analyzer.url_analyzer', url=url))
+    
+    # GET isteği için template'i göster
+    return render_template('web_adres_ekle.html', title='Web Kaynağı Ekle')
+
+# Toplu URL indeksleme işlevi
+@web_adres_bp.route('/batch_index_urls', methods=['POST'])
+def batch_index_urls():
+    urls = request.form.getlist('urls')
+    if not urls:
+        flash('İndekslenecek URL bulunamadı.', 'error')
+        return redirect(url_for('index'))
+    
+    try:
+        # Document store oluştur
+        document_store = create_document_store()
+        
+        # Web indeksleme pipeline'ını oluştur
+        indexing_pipeline = create_web_indexing_pipeline(document_store)
+        
+        # Her URL'yi indeksle
+        successful_urls = 0
+        total_documents = 0
+        
+        for url in urls:
+            # URL zaten eklenmiş mi kontrol et
+            if is_url_in_db(url):
+                continue
             
             # URL'yi indeksle
             result = indexing_pipeline.run({
@@ -90,25 +113,12 @@ def web_adres_ekle():
             # İndeksleme başarılı ise URL'yi ChromaDB'ye kaydet
             if result.get("writer", {}).get("documents_written", 0) > 0:
                 save_url_to_db(url)
-                document_count = result["writer"]["documents_written"]
-                flash(f'Web sayfası başarıyla indekslendi! {document_count} belge oluşturuldu.', 'success')
-                return render_template('web_adres_ekle.html', 
-                                      success=True, 
-                                      message=f'Web sayfası başarıyla indekslendi! {document_count} belge oluşturuldu.', 
-                                      title='Web Kaynağı Ekle')
-            else:
-                flash('Web sayfası indekslenirken bir sorun oluştu. İçerik bulunamadı.', 'error')
-                return render_template('web_adres_ekle.html', 
-                                      success=False, 
-                                      message='Web sayfası indekslenirken bir sorun oluştu. İçerik bulunamadı.', 
-                                      title='Web Kaynağı Ekle')
+                successful_urls += 1
+                total_documents += result["writer"]["documents_written"]
+        
+        flash(f'{successful_urls} URL başarıyla indekslendi! Toplam {total_documents} belge oluşturuldu.', 'success')
+        return redirect(url_for('index'))
                 
-        except Exception as e:
-            flash(f'Web sayfası indekslenirken bir hata oluştu: {str(e)}', 'error')
-            return render_template('web_adres_ekle.html', 
-                                  success=False, 
-                                  message=f'Web sayfası indekslenirken bir hata oluştu: {str(e)}', 
-                                  title='Web Kaynağı Ekle')
-    
-    # GET isteği için template'i göster
-    return render_template('web_adres_ekle.html', title='Web Kaynağı Ekle')
+    except Exception as e:
+        flash(f'URL\'ler indekslenirken bir hata oluştu: {str(e)}', 'error')
+        return redirect(url_for('index'))

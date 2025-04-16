@@ -31,9 +31,11 @@ instance/
 
 # Database files
 db/*.sqlite3
+# Tüm db klasörü içeriğini git'ten hariç tut
+db/*
 
-# Upload folder - uncomment if you want to exclude uploaded files from git
-# uploads/
+# Upload folder - tüm uploads klasörü içeriğini git'ten hariç tut
+uploads/*
 
 # IDE specific files
 .idea/

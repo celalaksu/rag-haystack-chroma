@@ -3,7 +3,7 @@
 {% block content %}
 <div class="container">
     <h1 class="mt-4">URL Analizi</h1>
-    <p class="lead">Bir web sayfası URL'si girin ve ilişkili sayfaları analiz edin.</p>
+    <p class="lead">Web sayfalarını analiz ederek kök URL altındaki içerikleri tespit edin ve RAG sisteminize ekleyin.</p>
     
     {% if success is defined %}
         {% if not success %}
@@ -13,6 +13,7 @@
         {% endif %}
     {% endif %}
     
+    {% if not hide_form %}
     <div class="card mt-4">
         <div class="card-body">
             <form method="POST" action="{{ url_for('url_analyzer.url_analyzer') }}">
@@ -27,6 +28,7 @@
             </form>
         </div>
     </div>
+    {% endif %}
     
     {% if results is defined %}
     <div class="card mt-4">
@@ -38,20 +40,7 @@
             <h3 class="card-title">1. Analiz Edilen URL</h3>
             <p class="card-text"><a href="{{ results.original_url }}" target="_blank">{{ results.original_url }}</a></p>
             
-            <h3 class="card-title mt-4">2. Sayfadaki İlk 20 URL</h3>
-            {% if results.page_urls %}
-                <ul class="list-group">
-                {% for url in results.page_urls %}
-                    <li class="list-group-item">
-                        <a href="{{ url }}" target="_blank">{{ url }}</a>
-                    </li>
-                {% endfor %}
-                </ul>
-            {% else %}
-                <p class="text-muted">Sayfada URL bulunamadı.</p>
-            {% endif %}
-            
-            <h3 class="card-title mt-4">3. Tespit Edilen Kök URL</h3>
+            <h3 class="card-title mt-4">2. Tespit Edilen Kök URL</h3>
             {% if results.root_urls %}
                 <ul class="list-group">
                 {% for url in results.root_urls %}
@@ -64,7 +53,7 @@
                 <p class="text-muted">Kök URL belirlenemedi.</p>
             {% endif %}
             
-            <h3 class="card-title mt-4">4. Kök URL Altındaki HTML Sayfaları</h3>
+            <h3 class="card-title mt-4">3. Kök URL Altındaki HTML Sayfaları</h3>
             {% if results.html_urls %}
                 <div class="alert alert-info">
                     Toplam {{ results.html_urls|length }} HTML sayfası bulundu.
@@ -76,6 +65,7 @@
                             <tr>
                                 <th scope="col">#</th>
                                 <th scope="col">HTML Sayfası</th>
+                                <th scope="col">Seçim</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -83,6 +73,11 @@
                             <tr>
                                 <td>{{ loop.index }}</td>
                                 <td><a href="{{ url }}" target="_blank">{{ url }}</a></td>
+                                <td>
+                                    <div class="form-check">
+                                        <input class="form-check-input url-checkbox" type="checkbox" value="{{ url }}" id="url-{{ loop.index }}" checked>
+                                    </div>
+                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -91,21 +86,17 @@
                 
                 <!-- HTML sayfalarını RAG sistemine ekle butonu -->
                 <div class="mt-3">
-                    <a href="{{ url_for('web_adres.web_adres_ekle') }}" class="btn btn-primary">
-                        HTML Sayfalarını RAG Sistemine Ekle
-                    </a>
+                    <form id="batch-index-form" method="POST" action="{{ url_for('url_analyzer.index_all_urls') }}">
+                        <div id="selected-urls-container"></div>
+                        <input type="hidden" name="root_url" value="{{ results.root_urls[0] if results.root_urls else '' }}">
+                        <button type="submit" class="btn btn-primary">
+                            Seçilen Sayfaları RAG Sistemine Ekle
+                        </button>
+                    </form>
                 </div>
             {% else %}
                 <p class="text-muted">HTML sayfası bulunamadı.</p>
             {% endif %}
-            
-            <div class="mt-4">
-                <h4>Bu URL'leri Eklemek İster misiniz?</h4>
-                <p>Tespit edilen URL'leri RAG sisteminize eklemek için:</p>
-                <a href="{{ url_for('web_adres.web_adres_ekle') }}" class="btn btn-success">
-                    Web Kaynağı Ekle Sayfasına Git
-                </a>
-            </div>
         </div>
     </div>
     {% endif %}
@@ -115,4 +106,34 @@
         <p>CSS, JS, resimler ve diğer HTML olmayan dosyalar taramaya dahil edilmez. Sadece muhtemel içerik sayfaları listelenir.</p>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Form gönderilmeden önce seçili URL'leri form'a ekle
+    const batchForm = document.getElementById('batch-index-form');
+    if (batchForm) {
+        batchForm.addEventListener('submit', function(e) {
+            // Önce eski input'ları temizle
+            const container = document.getElementById('selected-urls-container');
+            container.innerHTML = '';
+            
+            // Seçili checkbox'ları bul ve her biri için bir input oluştur
+            const checkboxes = document.querySelectorAll('.url-checkbox:checked');
+            checkboxes.forEach(function(checkbox) {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'urls';
+                input.value = checkbox.value;
+                container.appendChild(input);
+            });
+            
+            // Hiç URL seçilmemişse uyarı ver
+            if (checkboxes.length === 0) {
+                e.preventDefault();
+                alert('Lütfen en az bir URL seçin!');
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

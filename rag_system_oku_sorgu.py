@@ -43,9 +43,16 @@ def create_document_store():
 def create_system_promt():
     prompt_template = """
     {% if web_documents %}
-        You were asked to answer the following query given the documents retrieved from documentation but the context was not enough.
+        You are an expert in Rust Programming Language.
+        You were asked to answer the following query about Rust programming language given the documents retrieved from documentation but the context was not enough.
         Answer the question based on the given context.
         If you have enough context to answer this question, return your answer with the used links.
+        Answer the questions by relating them to the Rust Programming Language.
+        Example:
+        User question: What is the function?
+        New question: What is the function in Rust?
+        User question: How define a function?
+        New question: How define a function in Rust?    
 
         Here is the user question: {{ query }}
         Context:
@@ -55,7 +62,11 @@ def create_system_promt():
         ---
         {% endfor %}
     {% else %}
-        Answer the following query based on the documents retrieved from documentation.
+        You are an expert in Rust Programming Language.
+        You were asked to answer the following query about Rust programming language given the documents retrieved from documentation but the context was not enough.
+        Answer the question based on the given context.
+        If you have enough context to answer this question, return your answer with the used links.
+        Answer the questions by relating them to the Rust Programming Language.
 
         Documents:
         {% for document in documents %}
@@ -64,8 +75,9 @@ def create_system_promt():
 
         Query: {{query}}
 
-        If you have enough context to answer this question, just return your answer
-        If you don't have enough context to answer, say 'NO_ANSWER'.
+        If you have enough context to answer this question about Rust, just return your answer.
+        If the question is not about Rust programming language, state that you can only provide information about Rust.
+        If you don't have enough context to answer about Rust, say 'NO_ANSWER'.
     {% endif %}
     """
     prompt = [ChatMessage.from_user(prompt_template)]

@@ -41,6 +41,20 @@ def get_url_collection():
         print(f"URL Collection error: {e}")
         return None
 
+# Kök URL koleksiyonu oluştur veya var olanı getir
+def get_root_url_collection():
+    client = get_chroma_client()
+    try:
+        # Kök URL'ler için koleksiyonu getir, yoksa oluştur
+        collection = client.get_or_create_collection(
+            name="root_url_collection",
+            metadata={"description": "Root URLs of indexed web content"}
+        )
+        return collection
+    except Exception as e:
+        print(f"Root URL Collection error: {e}")
+        return None
+
 # Dosya hash değerini hesapla
 def calculate_file_hash(file_path):
     """
@@ -59,6 +73,13 @@ def calculate_url_hash(url):
     Verilen URL'nin MD5 hash değerini hesaplar
     """
     return hashlib.md5(url.encode('utf-8')).hexdigest()
+
+# Kök URL için hash değeri hesapla
+def calculate_root_url_hash(root_url):
+    """
+    Verilen kök URL'nin MD5 hash değerini hesaplar
+    """
+    return hashlib.md5(root_url.encode('utf-8')).hexdigest()
 
 # Hash değerini veritabanına kaydet
 def save_hash_to_db(file_path, file_hash, filename):
@@ -103,6 +124,30 @@ def save_url_to_db(url):
             return False
     return False
 
+# Kök URL değerini veritabanına kaydet
+def save_root_url_to_db(root_url):
+    """
+    Kök URL'yi ChromaDB koleksiyonuna kaydeder
+    """
+    root_url_hash = calculate_root_url_hash(root_url)
+    collection = get_root_url_collection()
+    if collection:
+        try:
+            # Kök URL'yi koleksiyona ekle
+            collection.add(
+                ids=[root_url_hash],
+                metadatas=[{
+                    "root_url": root_url,
+                    "indexed_date": datetime.datetime.now().isoformat()
+                }],
+                documents=[f"Root URL: {root_url}"]
+            )
+            return True
+        except Exception as e:
+            print(f"Kök URL kaydetme hatası: {e}")
+            return False
+    return False
+
 # Dosya hash değerinin veritabanında olup olmadığını kontrol et
 def is_hash_in_db(file_hash):
     """
@@ -135,5 +180,25 @@ def is_url_in_db(url):
             return len(results['ids']) > 0
         except Exception as e:
             print(f"URL kontrol hatası: {e}")
+            return False
+    return False
+
+# Kök URL'nin veritabanında olup olmadığını kontrol et
+def is_root_url_in_db(root_url):
+    """
+    Kök URL veritabanında var mı kontrol eder
+    """
+    root_url_hash = calculate_root_url_hash(root_url)
+    collection = get_root_url_collection()
+    if collection:
+        try:
+            results = collection.get(
+                ids=[root_url_hash],
+                include=["metadatas"]
+            )
+            # Eğer sonuç varsa (Kök URL veritabanında varsa) True döner
+            return len(results['ids']) > 0
+        except Exception as e:
+            print(f"Kök URL kontrol hatası: {e}")
             return False
     return False
