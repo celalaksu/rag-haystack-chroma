@@ -21,6 +21,9 @@ from haystack.components.builders import ChatPromptBuilder
 from haystack_integrations.components.generators.google_ai.chat.gemini import GoogleAIGeminiChatGenerator
 from haystack.components.websearch import SerperDevWebSearch
 
+# çeviri için
+
+
 # .env dosyasından API anahtarlarını yükle
 load_dotenv()
 GEMINI_API_KEY = os.getenv("GOOGLE_API_KEY")
@@ -28,6 +31,7 @@ GEMINI_API_KEY = os.getenv("GOOGLE_API_KEY")
 if not GEMINI_API_KEY:
     print("Hata: .env dosyasında GOOGLE_API_KEY bulunamadı!")
     sys.exit(1)
+
 
 # ChromaDB belge deposu oluşturma
 def create_document_store():
