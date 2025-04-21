@@ -101,6 +101,12 @@ rag-haystack-chroma/
 
    Uygulama varsayılan olarak http://127.0.0.1:5000/ adresinde çalışacaktır.
 
+7. **Uygulamayı Kendiniz İçin Özelleştirin**
+
+    Bu uygulama Rust Programlama Dili için hazırlanmıştır.
+    Özelleştirmek için;
+    ```rag_system_oku_sorgu.py``` dosyasındaki
+    ```def create_system_promt():``` fonksiyonunda bulunan promtu kendiniz için değiştirin.
 ## Kullanım
 
 ### PDF İndeksleme
