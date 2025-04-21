@@ -37,6 +37,7 @@ db/*
 
 # Upload folder - tüm uploads klasörü içeriğini git'ten hariç tut
 uploads/*
+./uploads/*
 
 # IDE specific files
 .idea/
