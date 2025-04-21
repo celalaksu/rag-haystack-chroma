@@ -33,6 +33,7 @@ instance/
 db/*.sqlite3
 # Tüm db klasörü içeriğini git'ten hariç tut
 db/*
+./db/*
 
 # Upload folder - tüm uploads klasörü içeriğini git'ten hariç tut
 uploads/*
@@ -47,4 +48,4 @@ uploads/*
 .DS_Store
 Thumbs.db
 
-.env
+./.env
