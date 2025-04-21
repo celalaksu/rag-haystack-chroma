@@ -50,3 +50,4 @@ uploads/*
 Thumbs.db
 
 ./.env
+.env
