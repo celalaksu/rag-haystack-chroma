@@ -23,3 +23,5 @@ docling-haystack>=0.1.1
 google-ai-haystack>=5.1.0
 haystack-ai>=2.12.1
 haystack-experimental>=0.8.0
+Markdown>=3.8
+markdown-it-py>=3.0.0
