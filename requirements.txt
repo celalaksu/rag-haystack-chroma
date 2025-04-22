@@ -17,3 +17,7 @@ beautifulsoup4>=4.12.2
 requests>=2.31.0
 Pygments>=2.0.1
 gunicorn>=20.1.0
+haystack-integration>=0.1.0
+haystack-embeddings>=0.1.0
+deepl>=1.0.0
+haystack-embeddings-openai>=0.1.0
