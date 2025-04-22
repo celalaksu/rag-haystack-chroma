@@ -5,6 +5,12 @@ from rag_system_oku_sorgu import create_document_store, run_user_query
 from deepl_haystack import DeepLTextTranslator
 from dotenv import load_dotenv
 import sys
+import markdown
+from markdown.extensions.fenced_code import FencedCodeExtension
+from markdown.extensions.codehilite import CodeHiliteExtension
+
+# using docling converter to convert llm answer to markdown
+# from docling_haystack.converter import DoclingConverter, ExportType
 
 load_dotenv()
 DEEPL_API_KEY = os.getenv("DEEPL_API_KEY")
@@ -22,8 +28,12 @@ def chat():
 @chat_bp.route('/query', methods=['POST'])
 def query():
     try:
-        # Kullanıcı sorgusunu al
-        user_query_tr = request.json.get('query', '')
+        # Kullanıcı sorgusunu al - ensure request.json is not None
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'JSON verisi bulunamadı!'}), 400
+            
+        user_query_tr = data.get('query', '')
         
         if not user_query_tr:
             return jsonify({'error': 'Sorgu boş olamaz!'}), 400
@@ -48,10 +58,19 @@ def query():
         # Yanıtı al
         if "answer" in result["router"]:
             answer = result["router"]["answer"]
+            # Convert markdown text to HTML with extensions for code blocks
+            answer_html = markdown.markdown(
+                answer, 
+                extensions=[
+                    FencedCodeExtension(),
+                    CodeHiliteExtension(use_pygments=True)
+                ]
+            )
+            # Return both raw markdown and HTML versions
+            return jsonify({'answer': answer, 'answer_html': answer_html})
         else:
             answer = "Bu soruya yanıt verebilmek için yeterli bilgi bulunamadı."
-        
-        return jsonify({'answer': answer})
+            return jsonify({'answer': answer, 'answer_html': answer})
     
     except Exception as e:
         return jsonify({'error': str(e)}), 500
